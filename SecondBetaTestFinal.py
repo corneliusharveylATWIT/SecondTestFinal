@@ -35,12 +35,24 @@ app = Dash(__name__)
 app.title = "Air Quality & Asthma Trends"
 
 app.layout = html.Div([
-    html.H1("Suffolk County Air Quality & Asthma Trends", style={"textAlign": "center", "marginBottom": "20px"}),
+    html.H1(
+        "Suffolk County Air Quality & Asthma Trends",
+        style={"textAlign": "center", "marginBottom": "20px"}
+    ),
 
     html.Div([
         html.Div([
             dcc.Graph(id='pollutant-graph', config={'displayModeBar': False}),
-            html.Label("Select Pollutant:", style={"fontWeight": "bold", "fontSize": "14px", "textAlign": "center", "display": "block", "marginTop": "10px"}),
+            html.Label(
+                "Select Pollutant:",
+                style={
+                    "fontWeight": "bold",
+                    "fontSize": "14px",
+                    "textAlign": "center",
+                    "display": "block",
+                    "marginTop": "10px"
+                }
+            ),
             html.Div([
                 dcc.Dropdown(
                     id='pollutant-dropdown',
@@ -54,7 +66,12 @@ app.layout = html.Div([
                     style={"fontSize": "12px", "width": "60%", "margin": "0 auto"}
                 )
             ], style={"textAlign": "center"})
-        ], style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
+        ], style={
+            'width': '100%',
+            'maxWidth': '600px',
+            'padding': '10px',
+            'boxSizing': 'border-box'
+        }),
 
         html.Div([
             dcc.Graph(
@@ -71,8 +88,17 @@ app.layout = html.Div([
                 ),
                 config={'displayModeBar': False}
             )
-        ], style={'width': '49%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'})
-    ], style={"display": "flex", "justifyContent": "center"})
+        ], style={
+            'width': '100%',
+            'maxWidth': '600px',
+            'padding': '10px',
+            'boxSizing': 'border-box'
+        })
+    ], style={
+        "display": "flex",
+        "flexWrap": "wrap",
+        "justifyContent": "center"
+    })
 ])
 
 @app.callback(
