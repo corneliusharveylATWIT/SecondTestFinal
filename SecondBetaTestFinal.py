@@ -9,7 +9,6 @@ ozone = pd.read_csv("Suffolk County Ozone Trends 2000-2024.csv")
 asthma_df = pd.read_csv("Suffolk County Asthma Hospitalizations 2000-2021.csv")
 
 # Extract relevant columns and standardize
-
 def prep(df, name):
     df = df[['date_local', 'arithmetic_mean']].copy()
     df['date_local'] = pd.to_datetime(df['date_local'])
@@ -25,7 +24,7 @@ ozone_df = prep(ozone, 'Ozone')
 # Combine all pollutants
 all_data = pd.concat([benzene_df, no2_df, ozone_df], ignore_index=True)
 
-# Filter asthma data for all ages and aggregate by year
+# Filter asthma data
 asthma_df = asthma_df[['Year', 'Case Count']].copy()
 asthma_df = asthma_df.groupby('Year')['Case Count'].sum().reset_index()
 asthma_df.rename(columns={'Year': 'year', 'Case Count': 'hospitalizations'}, inplace=True)
@@ -33,6 +32,7 @@ asthma_df.rename(columns={'Year': 'year', 'Case Count': 'hospitalizations'}, inp
 # Dash app
 app = Dash(__name__)
 app.title = "Air Quality & Asthma Trends"
+server = app.server  # Required for Render deployment
 
 app.layout = html.Div([
     html.H1(
@@ -42,7 +42,11 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            dcc.Graph(id='pollutant-graph', config={'displayModeBar': False}),
+            dcc.Graph(
+                id='pollutant-graph',
+                config={'displayModeBar': False},
+                style={'width': '100%', 'height': '100%', 'maxWidth': '600px', 'margin': '0 auto'}
+            ),
             html.Label(
                 "Select Pollutant:",
                 style={
@@ -65,12 +69,12 @@ app.layout = html.Div([
                     clearable=False,
                     style={"fontSize": "12px", "width": "60%", "margin": "0 auto"}
                 )
-            ], style={"textAlign": "center"})
+            ])
         ], style={
-            'width': '100%',
-            'maxWidth': '600px',
+            'flex': '1 1 300px',
             'padding': '10px',
-            'boxSizing': 'border-box'
+            'boxSizing': 'border-box',
+            'textAlign': 'center'
         }),
 
         html.Div([
@@ -84,16 +88,20 @@ app.layout = html.Div([
                     labels={'year': 'Year', 'hospitalizations': 'Hospitalizations'},
                     line_shape='linear'
                 ).update_traces(line_color='red').update_layout(
-                    margin=dict(t=40), height=400, xaxis=dict(dtick=2), yaxis_title='Hospitalizations'
+                    margin=dict(t=40),
+                    height=400,
+                    xaxis=dict(dtick=2),
+                    yaxis_title='Hospitalizations'
                 ),
-                config={'displayModeBar': False}
+                config={'displayModeBar': False},
+                style={'width': '100%', 'height': '100%', 'maxWidth': '600px', 'margin': '0 auto'}
             )
         ], style={
-            'width': '100%',
-            'maxWidth': '600px',
+            'flex': '1 1 300px',
             'padding': '10px',
-            'boxSizing': 'border-box'
-        })
+            'boxSizing': 'border-box',
+            'textAlign': 'center'
+        }),
     ], style={
         "display": "flex",
         "flexWrap": "wrap",
@@ -119,5 +127,4 @@ def update_graph(pollutant):
     fig.update_layout(margin=dict(t=40), height=400, xaxis=dict(dtick=2), yaxis_title='Concentration')
     return fig
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# ⚠️ No app.run() here — Gunicorn will start it in production
