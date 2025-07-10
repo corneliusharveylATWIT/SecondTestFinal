@@ -8,7 +8,7 @@ no2 = pd.read_csv("Suffolk County NO2 Trends 2000-2024.csv")
 ozone = pd.read_csv("Suffolk County Ozone Trends 2000-2024.csv")
 asthma_df = pd.read_csv("Suffolk County Asthma Hospitalizations 2000-2021.csv")
 
-# Extract relevant columns and standardize
+# Process pollutant data
 def prep(df, name):
     df = df[['date_local', 'arithmetic_mean']].copy()
     df['date_local'] = pd.to_datetime(df['date_local'])
@@ -20,19 +20,17 @@ def prep(df, name):
 benzene_df = prep(benzene, 'Benzene')
 no2_df = prep(no2, 'NO2')
 ozone_df = prep(ozone, 'Ozone')
-
-# Combine all pollutants
 all_data = pd.concat([benzene_df, no2_df, ozone_df], ignore_index=True)
 
-# Filter asthma data
+# Process asthma data
 asthma_df = asthma_df[['Year', 'Case Count']].copy()
 asthma_df = asthma_df.groupby('Year')['Case Count'].sum().reset_index()
 asthma_df.rename(columns={'Year': 'year', 'Case Count': 'hospitalizations'}, inplace=True)
 
-# Dash app
+# Initialize Dash app
 app = Dash(__name__)
 app.title = "Air Quality & Asthma Trends"
-server = app.server  # Required for Render deployment
+server = app.server  # Expose for gunicorn/Render
 
 app.layout = html.Div([
     html.H1(
@@ -44,8 +42,7 @@ app.layout = html.Div([
         html.Div([
             dcc.Graph(
                 id='pollutant-graph',
-                config={'displayModeBar': False},
-                style={'width': '100%', 'height': '100%', 'maxWidth': '600px', 'margin': '0 auto'}
+                config={'displayModeBar': False}
             ),
             html.Label(
                 "Select Pollutant:",
@@ -70,12 +67,7 @@ app.layout = html.Div([
                     style={"fontSize": "12px", "width": "60%", "margin": "0 auto"}
                 )
             ])
-        ], style={
-            'flex': '1 1 300px',
-            'padding': '10px',
-            'boxSizing': 'border-box',
-            'textAlign': 'center'
-        }),
+        ]),
 
         html.Div([
             dcc.Graph(
@@ -93,20 +85,10 @@ app.layout = html.Div([
                     xaxis=dict(dtick=2),
                     yaxis_title='Hospitalizations'
                 ),
-                config={'displayModeBar': False},
-                style={'width': '100%', 'height': '100%', 'maxWidth': '600px', 'margin': '0 auto'}
+                config={'displayModeBar': False}
             )
-        ], style={
-            'flex': '1 1 300px',
-            'padding': '10px',
-            'boxSizing': 'border-box',
-            'textAlign': 'center'
-        }),
-    ], style={
-        "display": "flex",
-        "flexWrap": "wrap",
-        "justifyContent": "center"
-    })
+        ])
+    ], className="flex-container")
 ])
 
 @app.callback(
@@ -126,5 +108,3 @@ def update_graph(pollutant):
     fig.update_traces(line_color='green')
     fig.update_layout(margin=dict(t=40), height=400, xaxis=dict(dtick=2), yaxis_title='Concentration')
     return fig
-
-# ⚠️ No app.run() here — Gunicorn will start it in production
